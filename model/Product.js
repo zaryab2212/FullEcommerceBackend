@@ -26,7 +26,7 @@ const ProductSchema = new Schema({
   thumbnail: { require: true, type: String },
   images: { require: true, type: [String] },
   category: { require: true, type: String },
-  deleted: { require: true, type: Boolean },
+  deleted: { type: Boolean },
 });
 
 const virtual = ProductSchema.virtual("id")

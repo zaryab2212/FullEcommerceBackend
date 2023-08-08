@@ -12,8 +12,8 @@ exports.createProduct = async (req, res) => {
 };
 
 exports.fetchAllProducts = async (req, res) => {
-  let query = Product.find({});
-  let totalProductQuery = Product.find({});
+  let query = Product.find({deleted:{$ne:true}});
+  let totalProductQuery =  Product.find({deleted:{$ne:true}});
 
   if (req.query.category) {
     query = query.find({ category: req.query.category });
@@ -56,7 +56,7 @@ exports.fetchProductbyid = async (req, res) => {
     // if(!product){
     //     res.status(400).json({sucess: false, message:"Unable to fine"})}
 
-    res.status(200).json({ sucess: true, message: "Unable to fine", product });
+    res.status(200).json(product);
   } catch (error) {
     res.status(400).json(error);
   }
@@ -68,7 +68,7 @@ exports.updateProduct = async (req, res) => {
     // if(!product){
     //     res.status(400).json({sucess: false, message:"Unable to fine"})}
 
-    res.status(200).json({ sucess: true, product });
+    res.status(200).json( product );
   } catch (error) {
     res.status(400).json(error);
   }

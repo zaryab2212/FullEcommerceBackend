@@ -1,9 +1,9 @@
-const express = require('express');
-const { fetchbrands, createBrand } = require('../Controller/Brand');
+const express = require("express")
 const router = express.Router()
+const { fetchbrands, createBrand } = require('../Controller/Brand');
+
 
 router.get("/",fetchbrands).post("/",createBrand)
 
+exports.router = router
 
-
-exports.router= router;
