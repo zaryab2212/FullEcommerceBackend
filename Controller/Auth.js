@@ -1,5 +1,7 @@
 const { User } = require("../model/User")
 
+
+
 exports.createUser = async(req,res) =>{
     const user =  new User(req.body)    
     try {
@@ -13,7 +15,7 @@ exports.createUser = async(req,res) =>{
 exports.loginUser = async(req,res)=>{
      const {email,password} = req.body;
      try {
-            const user = await User.findOne({email:email}, "id name email password ")
+            const user = await User.findOne({email})
          
             if(!user){
                 return res.status(400).json({message:"Email or Password is ddincorrect"})
@@ -23,7 +25,7 @@ exports.loginUser = async(req,res)=>{
                 return res.status(400).json({message:"Email or Password is ddincorrect"})
             }
             
-            res.status(201).json({id:user.id, role:user.role})
+            res.status(201).json({user:user.id, role:user.role})
 
      } catch (error) {
         res.status(400).json(error)
