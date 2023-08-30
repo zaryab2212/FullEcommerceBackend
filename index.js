@@ -1,4 +1,5 @@
 const express = require("express");
+require('dotenv').config()
 const mongoose = require("mongoose");
 const { createProduct } = require("./Controller/Product");
 const ProductRouter = require("./routes/Product");
@@ -18,24 +19,60 @@ const crypto = require("crypto");
 const { ExtractJwt } = require("passport-jwt");
 const cookieParser = require("cookie-parser");
 const LocalStrategy = require("passport-local").Strategy;
-const JwtStrategy = require("passport-jwt").Strategy;
+const JwtStrategy = require("passport-jwt").Strategy
 const Extractjwt = require("passport-jwt").ExtractJwt;
 const {  sanitizedUser,  isAuth, cookieExtractor } = require("./Services/Common");
+const server = express();
+const path = require('path');
+const { Order } = require("./model/Order");
+//webhook
 
-const SECRET_KEY = "SECRET_KEY";
+
+const endpointSecret = process.env.END_POINT_SEC  ;
+
+server.post('/webhook', express.raw({type: 'application/json'}), async (request, response) => {
+  const sig = request.headers['stripe-signature'];
+
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
+  } catch (err) {
+    response.status(400).send(`Webhook Error: ${err.message}`);
+    return;
+  }
+
+  // Handle the event
+  switch (event.type) {
+    case 'payment_intent.succeeded':
+      const paymentIntentSucceeded = event.data.object;
+    //  const order = await Order.findById({paymentIntentSucceeded.metadata.orderId})
+    //  order.paymentStatus = "received"
+    //  order.save() 
+     
+     break;
+    // ... handle other event types
+    default:
+      console.log(`Unhandled event type ${event.type}`);
+  }
+
+  // Return a 200 response to acknowledge receipt of the event
+  response.send();
+});
+
 
 //jwt Options
 const opts = {};
-opts.jwtFromRequest = cookieExtractor;
-opts.secretOrKey = SECRET_KEY;
+opts.jwtFromRequest = cookieExtractor
+opts.secretOrKey = process.env.JWT_SECRET_KEY;
 
-const server = express();
+
 //middleware
-
+// server.use(express.raw({type:'application/json'}))
 server.use(express.json());
 server.use(
   session({
-    secret: "keyboard cat",
+    secret: process.env.SESSION_KEY,
     resave: false, // don't save session if unmodified
     saveUninitialized: false, // don't create session until something stored
     // store: new SQLiteStore({ db: "sessions.db", dir: "./var/db" }),
@@ -48,19 +85,20 @@ server.use(
   })
 );
 
+server.use(express.static(path.resolve(__dirname,"build")))
 server.use(cookieParser());
 //pasport js
 
 
 
-server.use(express.static("build"));
-server.use("/products", isAuth(), ProductRouter.router);
+server.use("/products", isAuth(), ProductRouter.router)
 server.use("/brands",isAuth(),  BrandsRouter.router);
 server.use("/category",isAuth(),  categoriesRouter.router);
 server.use("/users",isAuth(),  UserRouter.router);
 server.use("/auth", AuthRouter.router);
 server.use("/cart", isAuth(), CartRouter.router);
 server.use("/orders",isAuth(),  OrderRouter.router);
+server.get("*",(req,res)=>res.sendFile(path.resolve("build",'index.html')))
 
 // for passport local stretegy
 
@@ -89,9 +127,9 @@ passport.use(
             return done(null, false, { message: "invalid credentials" });
           }
          
-          const token = jwt.sign(sanitizedUser(user), SECRET_KEY);
+          const token = jwt.sign(sanitizedUser(user), process.env.JWT_SECRET_KEY);
           
-          done(null, {id: user._id, role: user.role} ); // this lines sends to serializer
+          done(null, token); // this lines sends to serializer
         }
       );
     } catch (err) {
@@ -100,22 +138,6 @@ passport.use(
   })
 );
 
-// this will be jwt stretogy
-//passport.use(
-//"jwt",
-//new jwtStrategy(opts, async function (jwt_payload, done) {
-//try {
-//const user = await User.findOne({ id: jwt_payload.sub });
-//if (user) {
-// return done(null, sanitizedUser(user));
-//} else {
-//return done(null, false);
-// }
-//} catch (error) {
-//return done(error, false);
-//}
-//})
-//);
 
 passport.use(
   "jwt",
@@ -139,7 +161,7 @@ passport.use(
 passport.serializeUser(function (user, cb) {
   console.log('serial', user)
   process.nextTick(function () {
-    return cb(null, { id: user._id, role: user.role });
+    return cb(null, { _id: user._id, role: user.role });
   });
 });
 
@@ -153,12 +175,51 @@ passport.deserializeUser(function (user, cb) {
   });
 });
 
+//payments
+
+
+const stripe = require("stripe")(process.env.STRIPE_SERVER_KEY);
+
+
+
+
+
+server.post("/create-payment-intent", async (req, res) => {
+  const {  totalAmount, orderId } = req.body;
+
+  
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: totalAmount*100,
+    currency: "inr",
+    // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
+    automatic_payment_methods: {
+      enabled: true,
+    },
+    metadata:{
+      orderId
+    }
+  });
+
+  res.send({
+    clientSecret: paymentIntent.client_secret,
+  });
+});
+
+
+
+
+
+
+
+
+
+
 connection().catch((error) => console.log(error));
 
 server.get("/", (req, res) => {
   res.json({ data: "succes" });
 });
 
-server.listen(8080, () => {
+server.listen(process.env.PORT, () => {
   console.log("server Started");
 });

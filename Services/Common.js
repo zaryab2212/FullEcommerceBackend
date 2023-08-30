@@ -18,6 +18,6 @@ exports.isAuth = (req, res,done)=>{
       let token = null
         if (req && req.cookies){
          token = req.cookies['jwt'] }
-      token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NGQ5ZmQ1NmEwMzIxNjhjNmViNWEwNzgiLCJyb2xlIjoidXNlciIsImlhdCI6MTY5MjAwNzc2Nn0.-XSMR8IQzU9ogyjBTVml-f5VM8zIM0d1WN1XDVs51Lc"
+      // token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NGRkMWZiZWJhOGI1YjhiMTVmMzE2ZjYiLCJyb2xlIjoidXNlciIsImlhdCI6MTY5MzE0Njc1Mn0.dIDVnee2662xNGYG7PZJqXIzIpTUebsLAaH0iHeOLDY"
      return token
  }

@@ -8,7 +8,8 @@ const OrderSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref:"User", require:true},
     selectedPaymentMethod:{type:String,require:true},
     status:{type:String, default:'pending'},
-    selectedAddress:{ type: mongoose.Schema.Types.Mixed,require:true}
+    selectedAddress:{ type: mongoose.Schema.Types.Mixed,require:true},
+    paymentStatus:{type: String, default:"pending"}
 
 })
 
