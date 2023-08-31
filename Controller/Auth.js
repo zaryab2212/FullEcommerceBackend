@@ -43,10 +43,10 @@ exports.createUser = async (req, res) => {
 exports.loginUser = async (req, res) => {
   const user= req.user
    console.log("login req token ",req.user)
-  res.cookie("jwt", req.user.token, {
+  res.cookie("jwt", req.user, {
       expires: new Date(Date.now() + 24 *24 * 60 * 60 * 1000),
       httpOnly: true,
-    }).status(201).json({_id:user._id, role: user.role});
+    }).status(201).json({_id:user._id, role: user.role, abc:"working"});
 };
 exports.checkUser = async (req, res) => {
   if(req.user){
